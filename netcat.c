@@ -39,6 +39,7 @@
 
 #ifdef WIN32
 #pragma comment (lib, "ws2_32") /* winsock support */
+
 #endif
 
 /* conditional includes -- a very messy section: */
@@ -116,6 +117,22 @@
 #include <string.h>		/* strcpy, strchr, yadda yadda */
 #include <errno.h>
 #include <signal.h>
+
+#ifdef WIN32
+
+#define dup		_dup
+#define close	_close
+#define kbhit	_kbhit
+#define read	_read
+#define write	_write
+
+#endif
+
+#ifdef _MSC_VER 
+//not #if defined(_WIN32) || defined(_WIN64) because we have strncasecmp in mingw
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
+#endif
 
 /* handy stuff: */
 #define SA struct sockaddr	/* socket overgeneralization braindeath */
