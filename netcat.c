@@ -37,7 +37,7 @@
 
 #include "generic.h"		/* same as with L5, skey, etc */
 
-#ifdef WIN32
+#ifdef _WIN32
 #pragma comment (lib, "ws2_32") /* winsock support */
 
 #endif
@@ -57,15 +57,15 @@
 #ifdef FD_SETSIZE		/* should be in types.h, butcha never know. */
 #undef FD_SETSIZE		/* if we ever need more than 16 active */
 #endif				/* fd's, something is horribly wrong! */
-#ifdef WIN32
-#define FD_SETSIZE 64		/* WIN32 does this as an array not a bitfield and it likes 64 */
+#ifdef _WIN32
+#define FD_SETSIZE 64		/* _WIN32 does this as an array not a bitfield and it likes 64 */
 #else
 #define FD_SETSIZE 16		/* <-- this'll give us a long anyways, wtf */
 #endif
 #include <sys/types.h>		/* *now* do it.  Sigh, this is broken */
 
 
-#ifdef WIN32
+#ifdef _WIN32
 #undef HAVE_RANDOM
 #undef IP_OPTIONS
 #undef SO_REUSEPORT
@@ -92,7 +92,7 @@
 
 /* includes: */
 
-#ifdef WIN32
+#ifdef _WIN32
 # include <time.h>
 # include <fcntl.h>
 # include <io.h>
@@ -118,7 +118,7 @@
 #include <errno.h>
 #include <signal.h>
 
-#ifdef WIN32
+#ifdef _WIN32
 
 #define dup		_dup
 #define close	_close
@@ -129,7 +129,7 @@
 #endif
 
 #ifdef _MSC_VER 
-//not #if defined(_WIN32) || defined(_WIN64) because we have strncasecmp in mingw
+//not #if defined(__WIN32) || defined(_WIN64) because we have strncasecmp in mingw
 #define strncasecmp _strnicmp
 #define strcasecmp _stricmp
 #endif
@@ -171,7 +171,7 @@ static char unknown[] = "(UNKNOWN)";
 static char p_tcp[] = "tcp";	/* for getservby* */
 static char p_udp[] = "udp";
 
-#ifndef WIN32
+#ifndef _WIN32
 #ifdef HAVE_BIND
 extern int h_errno;
 #endif
@@ -199,7 +199,7 @@ static fd_set * ding2;
 static PINF * portpoop = NULL;		/* for getportpoop / getservby* */
 static unsigned char * stage = NULL;	/* hexdump line buffer */
 
-#ifdef WIN32
+#ifdef _WIN32
 static char * setsockopt_c;
 static int nnetfd;
 static HANDLE w32_stdout;
@@ -233,11 +233,11 @@ static USHORT o_esco = 0;
 
 static int helpme(); /* oop */
 
-#ifdef WIN32
+#ifdef _WIN32
 
 /* res_init
    winsock needs to be initialized. Might as well do it as the res_init
-   call for Win32 */
+   call for _WIN32 */
 
 static void res_init()
 {
@@ -351,7 +351,7 @@ static void holler (str, p1, p2, p3, p4, p5, p6)
 {
   if (o_verbose) {
     fprintf (stderr, str, p1, p2, p3, p4, p5, p6);
-#ifdef WIN32
+#ifdef _WIN32
 	if (h_errno)
 		fprintf (stderr, ": %s (%d:%ld)\n",winsockstr(h_errno), h_errno, GetLastError());
 #else
@@ -373,7 +373,7 @@ static void bail (str, p1, p2, p3, p4, p5, p6)
 {
   o_verbose = 1;
   holler (str, p1, p2, p3, p4, p5, p6);
-#ifdef WIN32
+#ifdef _WIN32
   shutdown(netfd, 0x02);  /* Kirby */
   closesocket (netfd);
 #else
@@ -397,7 +397,7 @@ static void catch ()
 #endif
 
 /* timeout and other signal handling cruft */
-#ifndef WIN32
+#ifndef _WIN32
 static jmp_buf jbuf;	/* timer crud */
 static int jval = 0;	/* timer crud */
 static void tmtravel ()
@@ -418,14 +418,14 @@ static void tmtravel ()
 
 /* arm :
    set the timer.  Zero secs arg means unarm  */
-#if defined(WIN32) && !defined(DEBUG)
+#if defined(_WIN32) && !defined(DEBUG)
 # define arm(x,y) ((void)0)
 #else
 void arm (num, secs)
   unsigned int num;
   unsigned int secs;
 {
-#ifdef WIN32
+#ifdef _WIN32
 #ifdef DEBUG
 	HANDLE stdhnd;
 	stdhnd = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -444,7 +444,7 @@ if (secs == 0) {			/* reset */
     alarm (secs);
     jval = num;
   } /* if secs */
-#endif /* WIN32 */
+#endif /* _WIN32 */
 } /* arm */
 #endif
 
@@ -501,7 +501,7 @@ static int comparehosts (poop, hp)
   struct hostent * hp;
 {
   errno = 0;
-#ifndef WIN32
+#ifndef _WIN32
   h_errno = 0;
 #endif
 /* The DNS spec is officially case-insensitive, but for those times when you
@@ -552,7 +552,7 @@ static HINF * gethostpoop (name, numeric)
    things down a bit for a first run, but once it's cached, who cares? */
 
   errno = 0;
-#ifndef WIN32
+#ifndef _WIN32
   h_errno = 0;
 #endif
   if (name)
@@ -615,7 +615,7 @@ static HINF * gethostpoop (name, numeric)
 
 /* whatever-all went down previously, we should now have a host_poop struct
    with at least one IP address in it. */
-#ifndef WIN32
+#ifndef _WIN32
   h_errno = 0;
 #endif
   return (poop);
@@ -633,7 +633,7 @@ static USHORT getportpoop (pstring, pnum)
   unsigned int pnum;
 {
   struct servent * servent;
-#ifndef WIN32
+#ifndef _WIN32
   register int x;
   register int y;
 #else
@@ -769,7 +769,7 @@ static void loadports (block, lo, hi)
 
 #ifdef GAPING_SECURITY_HOLE
 char * pr00gie = NULL;			/* global ptr to -e arg */
-#ifdef WIN32
+#ifdef _WIN32
 BOOL doexec(SOCKET  ClientSocket);  // this is in doexec.c
 #else
 
@@ -785,7 +785,7 @@ doexec (fd)
   register char * p;
 
   dup2 (fd, 0);				/* the precise order of fiddlage */
-#ifdef WIN32
+#ifdef _WIN32
   shutdown(fd, SD_BOTH);  /* Kirby */
   closesocket (fd);
 #else
@@ -805,7 +805,7 @@ Debug (("gonna exec %s as %s...", pr00gie, p))
 #endif
 #endif /* GAPING_SECURITY_HOLE */
 
-#ifdef WIN32
+#ifdef _WIN32
 static const BYTE f_color[8] =
 {
   0,FOREGROUND_RED, FOREGROUND_GREEN,
@@ -845,14 +845,14 @@ static int doconnect (rad, rp, lad, lp)
   IA * lad;
   USHORT lp;
 {
-#ifndef WIN32
+#ifndef _WIN32
   register int nnetfd;
 #endif
   register int rr;
   int x, y;
 
   errno = 0;
-#ifdef WIN32
+#ifdef _WIN32
 	WSASetLastError(0);
 #endif
 /* grab a socket; set opts */
@@ -864,7 +864,7 @@ static int doconnect (rad, rp, lad, lp)
     bail ("Can't get socket");
   if (nnetfd == 0)		/* might *be* zero if stdin was closed! */
     nnetfd = dup (nnetfd);	/* so fix it.  Leave the old 0 hanging. */
-#ifdef WIN32
+#ifdef _WIN32
   rr = setsockopt (nnetfd, SOL_SOCKET, SO_REUSEADDR, (const char FAR *)setsockopt_c, sizeof (setsockopt_c));
 #else
   x = 1;
@@ -873,7 +873,7 @@ static int doconnect (rad, rp, lad, lp)
   if (rr == -1)
     holler ("nnetfd reuseaddr failed");		/* ??? */
 #ifdef SO_REUSEPORT	/* doesnt exist everywhere... */
-#ifdef WIN32
+#ifdef _WIN32
   rr = setsockopt (nnetfd, SOL_SOCKET, SO_REUSEPORT, &c, sizeof (c));
 #else
   rr = setsockopt (nnetfd, SOL_SOCKET, SO_REUSEPORT, &x, sizeof (x));
@@ -959,7 +959,7 @@ static int doconnect (rad, rp, lad, lp)
   if (gatesidx) {		/* if we wanted any srcrt hops ... */
 /* don't even bother compiling if we can't do IP options here! */
 /* #ifdef IP_OPTIONS */
-#ifndef WIN32 
+#ifndef _WIN32 
     if (! optbuf) {		/* and don't already *have* a srcrt set */
       char * opp;		/* then do all this setup hair */
       optbuf = Hmalloc (48);
@@ -995,7 +995,7 @@ static int doconnect (rad, rp, lad, lp)
     rr = connect (nnetfd, (SA *)remend, sizeof (SA));
   } else {				/* setjmp: connect failed... */
     rr = -1;
-#ifdef WIN32
+#ifdef _WIN32
     WSASetLastError(WSAETIMEDOUT);			/* fake it */
 #else
     errno = ETIMEDOUT;			/* fake it */
@@ -1004,7 +1004,7 @@ static int doconnect (rad, rp, lad, lp)
   arm (0, 0);
   if (rr == 0)
     return (nnetfd);
-#ifdef WIN32
+#ifdef _WIN32
   errno = h_errno;
   shutdown(nnetfd, 0x02);  /* Kirby */
   closesocket (nnetfd);
@@ -1107,7 +1107,7 @@ Debug (("dolisten/recvfrom ding, rr = %d, netbuf %s ", rr, bigbuf_net))
   } else
     goto dol_tmo;		/* timeout */
   arm (0, 0);
-#ifdef WIN32
+#ifdef _WIN32
   shutdown(nnetfd, 0x02);  /* Kirby */
   closesocket (nnetfd);
 #else
@@ -1128,7 +1128,7 @@ whoisit:
    thing to emerge after all the intervening crud.  Doesn't work for UDP on
    any machines I've tested, but feel free to surprise me. */
 /* #ifdef IP_OPTIONS */
-#ifndef WIN32
+#ifndef _WIN32
   if (! o_verbose)			/* if we wont see it, we dont care */
     goto dol_noop;
   optbuf = Hmalloc (40);
@@ -1196,7 +1196,7 @@ dol_noop:
 dol_tmo:
   errno = ETIMEDOUT;			/* fake it */
 dol_err:
-#ifdef WIN32
+#ifdef _WIN32
   shutdown(nnetfd, 0x02);  /* Kirby */
   closesocket (nnetfd);
 #else
@@ -1221,7 +1221,7 @@ static int udptest (fd, where)
 {
   register int rr;
 
-#ifdef WIN32
+#ifdef _WIN32
   rr = send (fd, bigbuf_in, 1, 0);
 #else
   rr = write (fd, bigbuf_in, 1);
@@ -1240,7 +1240,7 @@ static int udptest (fd, where)
     o_wait = 5;				/* XXX: enough to notice?? */
     rr = doconnect (where, SLEAZE_PORT, 0, 0);
     if (rr > 0)
-#ifdef WIN32
+#ifdef _WIN32
 	  shutdown(fd, 0x02);  /* Kirby */
 	  closesocket (rr);
 #else
@@ -1250,14 +1250,14 @@ static int udptest (fd, where)
     o_udpmode++;			/* we *are* still doing UDP, right? */
   } /* if o_wait */
   errno = 0;				/* clear from sleep */
-#ifdef WIN32
+#ifdef _WIN32
   rr = send (fd, bigbuf_in, 1, 0);
 #else
   rr = write (fd, bigbuf_in, 1);
 #endif
   if (rr == 1)				/* if write error, no UDP listener */
     return (fd);
-#ifdef WIN32
+#ifdef _WIN32
   shutdown(fd, 0x02);  /* Kirby */
   closesocket (fd);
 #else
@@ -1352,7 +1352,7 @@ static void oprint (which, buf, n)
       x--;
     } /* while x */
     *a = '\n';			/* finish the line */
-#ifndef WIN32
+#ifndef _WIN32
     x = write (ofd, stage, soc);
 #else
 	x = WriteFile((HANDLE)ofd, stage, soc, &wb, NULL) ? (int)wb : -1;
@@ -1395,7 +1395,7 @@ static void atelnet (buf, size)
       obuf[1] = y;
       p++; x--;
       obuf[2] = *p;			/* copy actual option byte */
-#ifdef WIN32
+#ifdef _WIN32
 	  (void) send (netfd, (const char*)obuf, 3, 0);	/* one line, or the whole buffer */
 #else
       (void) write (netfd, obuf, 3);
@@ -1414,7 +1414,7 @@ notiac:
    handle stdin/stdout/network I/O.  Bwahaha!! -- the select loop from hell.
    In this instance, return what might become our exit status. */
 static int readwrite (fd)
-#ifdef WIN32
+#ifdef _WIN32
   unsigned int fd;
 #else
   int fd;
@@ -1427,10 +1427,10 @@ static int readwrite (fd)
   unsigned int rnleft;
   USHORT wretry;		/* net-write sanity counter */
   USHORT wfirst;		/* one-shot flag to skip first net read */
-#ifndef WIN32
+#ifndef _WIN32
   USHORT netretry;		/* net-read retry counter */
 #else
-/* (weld) WIN32 must poll because of weak stdin handling so we need a short timer */
+/* (weld) _WIN32 must poll because of weak stdin handling so we need a short timer */
   struct timeval timer3;
   int istty;
   time_t start, current;
@@ -1458,7 +1458,7 @@ static int readwrite (fd)
 
 /* if you don't have all this FD_* macro hair in sys/types.h, you'll have to
    either find it or do your own bit-bashing: *ding1 |= (1 << fd), etc... */
-#ifndef WIN32  /* fd is not implemented as a real file handle in WIN32 */
+#ifndef _WIN32  /* fd is not implemented as a real file handle in _WIN32 */
   if (fd > FD_SETSIZE) {
     holler ("Preposterous fd value %d", fd);
     return (1);
@@ -1484,7 +1484,7 @@ static int readwrite (fd)
   if (o_interval)
     sleep (o_interval);		/* pause *before* sending stuff, too */
   errno = 0;			/* clear from sleep */
-#ifdef WIN32
+#ifdef _WIN32
   WSASetLastError(0);
 #endif
 
@@ -1501,20 +1501,20 @@ static int readwrite (fd)
    we create a expendable copy and give *that* to select.  *Fuck* me ... */
     if (timer1)
       memcpy (timer2, timer1, sizeof (struct timeval));
-#ifdef WIN32 /* (weld)we must use our own small timeval to poll */
+#ifdef _WIN32 /* (weld)we must use our own small timeval to poll */
     rr = select (16, ding2, 0, 0, &timer3);	/* here it is, kiddies */
 #else
     rr = select (16, ding2, 0, 0, timer2);	/* here it is, kiddies */
 #endif
     if (rr < 0) {
-#ifdef WIN32
+#ifdef _WIN32
 		if (h_errno != WSAEINTR) {		/* might have gotten ^Zed, etc ?*/
 #else
 		if (errno != EINTR) {		/* might have gotten ^Zed, etc ?*/
 #endif
 		  // foo = h_errno;
 		  holler ("select fuxored");
-#ifdef WIN32
+#ifdef _WIN32
 		  shutdown(fd, 0x02);  /* Kirby */
 		  closesocket (fd);
 #else
@@ -1525,7 +1525,7 @@ static int readwrite (fd)
     } /* select fuckup */
 /* if we have a timeout AND stdin is closed AND we haven't heard anything
    from the net during that time, assume it's dead and close it too. */
-#ifndef WIN32  /* (weld) need to write some code here */
+#ifndef _WIN32  /* (weld) need to write some code here */
     if (rr == 0) {
 	if (! FD_ISSET (0, ding1))
 	  netretry--;			/* we actually try a coupla times. */
@@ -1555,7 +1555,7 @@ static int readwrite (fd)
 
 /* Ding!!  Something arrived, go check all the incoming hoppers, net first */
     if (FD_ISSET (fd, ding2)) {		/* net: ding! */
-#ifdef WIN32
+#ifdef _WIN32
 	// reset timer
 	time( &start );
 
@@ -1583,7 +1583,7 @@ Debug (("got %d from the net, errno %d", rr, errno))
 	goto shovel;
 
 /* okay, suck more stdin */
-#ifndef WIN32
+#ifndef _WIN32
     if (FD_ISSET (0, ding2)) {		/* stdin: ding! */
 	rr = read (0, bigbuf_in, BIGSIZ);
 
@@ -1657,7 +1657,7 @@ shovel:
 	return (1);
     }
     if (rnleft) {
-#ifdef WIN32
+#ifdef _WIN32
 	register unsigned char * ptr = np, *p2, *end = &np[rnleft];
 	while(ptr < end) {
 		if(*ptr > 0x7e) {
@@ -1735,7 +1735,7 @@ Debug (("wrote %d to stdout, errno %d", rr, errno))
 	  rr = findline (zp, rzleft);
 	else
 	  rr = rzleft;
-#ifdef WIN32
+#ifdef _WIN32
 	rr = send (fd, (const char*)zp, rr, 0);	/* one line, or the whole buffer */
 #else
 	rr = write (fd, zp, rr);	/* one line, or the whole buffer */
@@ -1763,7 +1763,7 @@ Debug (("wrote %d to net, errno %d", rr, errno))
    blocking reads and writes and my own manual "last ditch" efforts to read
    the net again after a timeout.  I haven't seen any screwups yet, but it's
    not like my test network is particularly busy... */
-#ifdef WIN32
+#ifdef _WIN32
   shutdown(fd, 0x02);  /* Kirby */
   closesocket (fd);
 #else
@@ -1773,7 +1773,7 @@ Debug (("wrote %d to net, errno %d", rr, errno))
 } /* readwrite */
 
 
-#ifdef WIN32
+#ifdef _WIN32
 static void __w32_shutdown(void)
 {
 	if(ofd && ofd != (int)INVALID_HANDLE_VALUE)
@@ -1819,7 +1819,7 @@ int main (argc, argv)
   char * randports = NULL;
   int cycle = 0;
 
-#ifdef WIN32
+#ifdef _WIN32
   atexit(__w32_shutdown);
   w32_stdout = GetStdHandle(STD_OUTPUT_HANDLE);
   if (w32_stdout == INVALID_HANDLE_VALUE)
@@ -1842,14 +1842,14 @@ int main (argc, argv)
   ding2 = (fd_set *) Hmalloc (sizeof (fd_set));
   portpoop = (PINF *) Hmalloc (sizeof (PINF));
 
-#ifdef WIN32
+#ifdef _WIN32
   setsockopt_c = (char *)malloc(sizeof(char));
   *setsockopt_c	= 1;
 #endif
 
   errno = 0;
   gatesptr = 4;
-#ifndef WIN32
+#ifndef _WIN32
   h_errno = 0;	
 #endif
 /* catch a signal or two for cleanup */
@@ -1956,7 +1956,7 @@ recycle:
 #endif
       case 'i':				/* line-interval time */
 	o_interval = atoi (optarg) & 0xffff;
-#ifdef WIN32
+#ifdef _WIN32
 	o_interval *= 1000;
 #endif
 	if (! o_interval)
@@ -2013,7 +2013,7 @@ recycle:
   } /* while getopt */
 
 /* other misc initialization */
-#ifndef WIN32  /* Win32 doesn't like to mix file handles and sockets */
+#ifndef _WIN32  /* _WIN32 doesn't like to mix file handles and sockets */
   Debug (("fd_set size %d", sizeof (*ding1)))	/* how big *is* it? */
   FD_SET (0, ding1);			/* stdin *is* initially open */
 #endif
@@ -2029,7 +2029,7 @@ recycle:
   }
 #endif /* G_S_H */
   if (o_wfile) {
-#ifndef WIN32
+#ifndef _WIN32
     ofd = open ((const char*)stage, O_WRONLY | O_CREAT | O_TRUNC, 0664);
     if (ofd <= 0)			/* must be > extant 0/1/2 */
 #else
@@ -2054,7 +2054,7 @@ Debug (("after go: x now %c, optarg %x optind %d", x, optarg, optind))
   if (themaddr)
     optind++;				/* skip past valid host lookup */
   errno = 0;
-#ifndef WIN32
+#ifndef _WIN32
   h_errno = 0;
 #endif
 
@@ -2075,8 +2075,8 @@ Debug (("after go: x now %c, optarg %x optind %d", x, optarg, optind))
 #ifdef GAPING_SECURITY_HOLE
 	if (pr00gie)			/* -e given? */
 		doexec (netfd);
-#ifdef WIN32
-	if (!pr00gie)  // doexec does the read/write for win32
+#ifdef _WIN32
+	if (!pr00gie)  // doexec does the read/write for _WIN32
 #endif
 
 #endif /* GAPING_SECURITY_HOLE */
@@ -2149,9 +2149,9 @@ Debug (("netfd %d from port %d to port %d", netfd, ourport, curport))
 	doexec (netfd);
 #endif /* GAPING_SECURITY_HOLE */
 	if (! o_zero)
-#ifdef WIN32 
+#ifdef _WIN32 
 #ifdef GAPING_SECURITY_HOLE
-	if (!pr00gie)  // doexec does the read/write for win32
+	if (!pr00gie)  // doexec does the read/write for _WIN32
 #endif
 #endif
 	  x = readwrite (netfd);	/* go shovel shit */
@@ -2159,7 +2159,7 @@ Debug (("netfd %d from port %d to port %d", netfd, ourport, curport))
 	x = 1;				/* preload exit status for later */
 /* if we're scanning at a "one -v" verbosity level, don't print refusals.
    Give it another -v if you want to see everything. */
-#ifdef WIN32
+#ifdef _WIN32
 	if ((Single || (o_verbose > 1)) || (h_errno != WSAECONNREFUSED))
 #else
 	if ((Single || (o_verbose > 1)) || (errno != ECONNREFUSED))
@@ -2167,7 +2167,7 @@ Debug (("netfd %d from port %d to port %d", netfd, ourport, curport))
 	  holler ("%s [%s] %d (%s)",
 	    whereto->name, whereto->addrs[0], curport, portpoop->name);
       } /* if netfd */
-#ifdef WIN32
+#ifdef _WIN32
 	  shutdown(netfd, 0x02);  /* Kirby */
       closesocket (netfd);			/* just in case we didn't already */
 #else
@@ -2187,7 +2187,7 @@ Debug (("netfd %d from port %d to port %d", netfd, ourport, curport))
   if (o_verbose > 1)		/* normally we don't care */
     holler ("sent %d, rcvd %d", wrote_net, wrote_out);
 
-#ifdef WIN32
+#ifdef _WIN32
     WSACleanup(); 
 #endif
 	free(randports);

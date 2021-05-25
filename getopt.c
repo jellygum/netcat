@@ -44,7 +44,7 @@ Cambridge, MA 02139, USA.  */
 
 #include <stdio.h>
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <string.h>
 #endif
 
